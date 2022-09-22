@@ -39,11 +39,12 @@ google_oauth2_client = GoogleOAuth2Client(
     authorization_args={
         "prompt": "consent",
         "access_type": "offline"
-    }
-)
+    })
 
 calendar_scope = [
     "openid",
     "https://www.googleapis.com/auth/calendar.readonly",
     "https://www.googleapis.com/auth/calendar",
 ]
+
+API_BASE_URL = "http://localhost:8080"

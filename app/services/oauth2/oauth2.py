@@ -10,7 +10,7 @@ from app.services import crypto
 
 from . import database
 from .schemas import OAuth2State, OAuth2Token
-from .settings import (calendar_scope, google_oauth2_client,
+from .settings import (API_BASE_URL, calendar_scope, google_oauth2_client,
                        google_oauth2_server)
 
 logger = getLogger()
@@ -35,8 +35,7 @@ def get_authorization_url(user_id: str) -> str:
         authorization_url, _ = session.authorization_url(
             google_oauth2_server.authorization_url,
             state=state,
-            **google_oauth2_client.authorization_args
-        )
+            **google_oauth2_client.authorization_args)
 
     return authorization_url
 
@@ -61,7 +60,7 @@ def process_callback(scope: str, state: str, code: str):
     token = _fetch_token(authorization_response)
 
     database.insert(session_state.user_id, token)
-    return "http://localhost:8080"
+    return API_BASE_URL
 
 
 @contextmanager
@@ -82,12 +81,10 @@ def load(user_id: str) -> Session:
 
 
 def _create_authorization_response(code: str, scope: str, state: str):
-    return (
-        f"http://localhost:8080/oauth2/callback?"
-        f"state={state}&"
-        f"code={code}&"
-        f"scope={scope}"
-    )
+    return (f"{API_BASE_URL}/oauth2/callback?"
+            f"state={state}&"
+            f"code={code}&"
+            f"scope={scope}")
 
 
 def _fetch_token(authorization_response: str) -> OAuth2Token:
@@ -114,9 +111,13 @@ def _parse_state(state: str) -> OAuth2State:
     return parsed_state
 
 
-def _create_session(*, state: str = None, scope: List[str] = None, token_updater=None, token=None) -> OAuth2Session:
+def _create_session(*,
+                    state: str = None,
+                    scope: List[str] = None,
+                    token_updater=None,
+                    token=None) -> OAuth2Session:
     """
-    Creates an OAuth2Session based on specific configuration of server/client.
+    Creates an OAuth2Session
 
     Args:
         state (str): string representing the state sent to the server. Mainly used during authorization
@@ -126,7 +127,7 @@ def _create_session(*, state: str = None, scope: List[str] = None, token_updater
     """
     return OAuth2Session(
         client_id=google_oauth2_client.client_id,
-        redirect_uri="http://localhost:8080/oauth2/callback",
+        redirect_uri=f"{API_BASE_URL}/oauth2/callback",
         auto_refresh_url=google_oauth2_server.token_url,
         auto_refresh_kwargs=google_oauth2_client.auto_refresh_kwargs,
         token=token,
